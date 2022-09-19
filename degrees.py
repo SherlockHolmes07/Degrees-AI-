@@ -1,4 +1,5 @@
 import csv
+from multiprocessing.connection import answer_challenge
 import sys
 
 from util import Node, StackFrontier, QueueFrontier
@@ -57,10 +58,15 @@ def main():
         sys.exit("Usage: python degrees.py [directory]")
     directory = sys.argv[1] if len(sys.argv) == 2 else "large"
 
+
     # Load data from files into memory
     print("Loading data...")
     load_data(directory)
     print("Data loaded.")
+
+    #print(names)
+    #print(people)
+    #print(movies)
 
     source = person_id_for_name(input("Name: "))
     if source is None:
@@ -93,7 +99,36 @@ def shortest_path(source, target):
     """
 
     # TODO
-    raise NotImplementedError
+    start = Node(source, None, None)
+    queue = QueueFrontier()
+    queue.add(start)
+    explored = set()
+
+    ans_list = []
+
+    while True:
+
+        if queue.empty():
+            return None
+        node = queue.remove()
+        
+        links = neighbors_for_person(node.state)
+        for link in links:
+            if link[1]  in explored or queue.contains_state(link[1]):
+                continue
+            
+            if link[1] == target:
+                ans_list.append((link[0], link[1]))
+                while node.parent is not None:
+                    ans_list.append((node.action, node.state))
+                    node = node.parent
+                ans_list.reverse()
+                return ans_list
+
+            newNode = Node(link[1], node, link[0])
+            queue.add(newNode)
+                
+
 
 
 def person_id_for_name(name):
